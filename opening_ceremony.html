@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SAVD 2026 — Opening Ceremony</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  /* ===== LIGHT POOL-DECK PALETTE ===== */
+  --wash-1:#eef9fb;        /* palest aqua — page wash */
+  --wash-2:#d3edf2;        /* soft aqua — wash edge */
+  --panel:#ffffff;         /* card / panel white */
+  --line:#c6e6ec;          /* hairline dividers */
+  --ink:#0a3540;           /* primary text — deep teal-navy */
+  --ink-soft:#3f6b76;      /* secondary text */
+  --coral:#f05b30;         /* brand accent — warm coral */
+  --coral-deep:#c43d1a;    /* deep accent / CTA */
+  --teal-pop:#0e8a95;      /* teal label accent */
+  --font-display:'Orbitron','Arial Narrow',sans-serif;
+  --font-body:'Rajdhani','Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono','Consolas',monospace;
+  --font-serif:'Playfair Display',Georgia,serif;
+  --font-script:'Great Vibes',cursive;
+  --font-modern:'Inter','Segoe UI',Helvetica,Arial,sans-serif;
+}
+
+*{box-sizing:border-box;}
+html,body{
+  margin:0; padding:0; width:100vw; height:100vh;
+  overflow:hidden;
+  background:linear-gradient(180deg,var(--wash-1),var(--wash-2));
+  font-family:var(--font-body);
+  color:var(--ink);
+}
+
+/* ==========================================================
+   BACKGROUND SYSTEM — underwater video + campus photo slideshow,
+   both washed light so the deck stays airy instead of cinematic-dark.
+   ========================================================== */
+
+#bg-video-wrapper {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden; background:var(--wash-1);
+  opacity: 0; transition: opacity 2.2s ease;
+}
+body[data-bg="video"] #bg-video-wrapper{ opacity: 1; }
+#bg-video-wrapper video {
+  min-width: 100%; min-height: 100%; width: 100vw; height: 100vh;
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  opacity: 0.62;
+  filter: saturate(.95) brightness(1.08);
+}
+
+#bg-slideshow {
+  position: fixed; inset: 0; z-index: 1; overflow: hidden;
+  opacity: 0; transition: opacity 2.2s ease;
+}
+body[data-bg="image"] #bg-slideshow{ opacity: 1; }
+.bg-slide {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  opacity: 0; transform: scale(1.15);
+  transition: opacity 3.5s ease-in-out, transform 12s linear;
+  filter: saturate(.85) brightness(1.1);
+}
+.bg-slide.active { opacity: 0.68; transform: scale(1.0); z-index: 1; }
+
+/* subtle rotating light shimmer for ambience — kept faint on a light backdrop */
+#light-rays{
+  position:fixed; inset:-25%; z-index:2; pointer-events:none;
+  background: conic-gradient(from 0deg at 50% -10%,
+    rgba(240,91,48,0) 0deg, rgba(240,91,48,.06) 35deg,
+    rgba(240,91,48,0) 85deg, rgba(14,138,149,.05) 150deg,
+    rgba(240,91,48,0) 210deg, rgba(196,61,26,.04) 300deg,
+    rgba(240,91,48,0) 340deg);
+  mix-blend-mode: multiply; opacity:.6;
+  animation: rayRotate 70s linear infinite;
+}
+@keyframes rayRotate{ to{ transform:rotate(360deg); } }
+
+/* readability wash sitting above both backdrops — this is what keeps the page light */
+#bg-overlay{
+  position:fixed; inset:0; z-index:3; pointer-events:none;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(238,249,251,.06) 0%, rgba(219,242,245,.22) 62%, rgba(197,232,237,.4) 100%),
+    linear-gradient(180deg, rgba(238,249,251,.32) 0%, rgba(238,249,251,.05) 18%, rgba(238,249,251,.05) 78%, rgba(211,238,242,.4) 100%);
+}
+
+/* ---------- stage / scene crossfade ---------- */
+#stage{ position:fixed; inset:0; z-index:4; display:flex; align-items:center; justify-content:center; }
+.scene{
+  position:absolute; inset:0; display:flex !important;
+  flex-direction:column; align-items:center; justify-content:center;
+  opacity:0; transform:scale(1.05) translateY(16px); filter:blur(10px);
+  transition:opacity 1s cubic-bezier(.4,0,.2,1), transform 1s cubic-bezier(.4,0,.2,1), filter 1s cubic-bezier(.4,0,.2,1);
+  padding:4vh 6vw; text-align:center;
+}
+.scene.active{ opacity:1; transform:scale(1) translateY(0); filter:blur(0); }
+.scene.leaving{ opacity:0; transform:scale(.96) translateY(-12px); filter:blur(8px); transition:opacity .8s ease, transform .8s ease, filter .8s ease; }
+
+/* frosted glass reading panel — keeps text crisp while the video/photo
+   backdrop stays visible around and behind it */
+.welcome-wrap, .about-wrap, .format-wrap, .venue-wrap, .closing-wrap, .uni-wrap, .intro-wrap .intro-content{
+  background:rgba(255,255,255,.58);
+  backdrop-filter:blur(14px) saturate(1.15);
+  -webkit-backdrop-filter:blur(14px) saturate(1.15);
+  border:1px solid rgba(255,255,255,.6);
+  border-radius:28px;
+  padding:3.4vh 5vw;
+  box-shadow:0 24px 60px rgba(10,53,64,.16);
+}
+
+/* ---------- typography helpers ---------- */
+.eyebrow{
+  font-family:var(--font-mono); letter-spacing:.45em; text-transform:uppercase;
+  font-size:clamp(15px,1.43vw,22px); color:var(--teal-pop); opacity:.9;
+}
+h1.display{
+  font-family:var(--font-display); font-weight:900; text-transform:uppercase;
+  font-size:clamp(47px,8.73vw,126px); letter-spacing:.02em; margin:.2em 0;
+  color:var(--ink);
+  text-shadow:0 2px 22px rgba(240,91,48,.12);
+}
+h1.display .accent-word{
+  text-transform:none; font-family:var(--font-script); font-weight:400;
+  font-size:1.3em; color:var(--coral-deep); vertical-align:middle;
+}
+.coral{ color:var(--coral-deep); }
+.teal{ color:var(--teal-pop); }
+.sub-line{
+  font-family:var(--font-body); font-weight:600; font-size:clamp(22px,2.73vw,36px);
+  color:var(--ink-soft); letter-spacing:.03em;
+}
+.script-heading{
+  font-family:var(--font-script); font-weight:400; color:var(--coral-deep);
+  font-size:clamp(66px,9.82vw,152px); line-height:1.05; margin:4px 0 14px;
+}
+.formal-para{
+  font-family:var(--font-modern); font-style:normal; font-weight:500;
+  font-size:clamp(21px,2.4vw,30px); line-height:1.55; letter-spacing:.005em; color:var(--ink);
+  max-width:1020px; margin:0 auto;
+}
+.lead-line{
+  font-family:var(--font-body); font-weight:600; font-size:clamp(20px,1.95vw,26px);
+  line-height:1.55; color:var(--ink-soft); max-width:1020px; margin:16px auto 0;
+}
+
+.pill{
+  font-family:var(--font-mono); font-size:clamp(15px,1.37vw,21px); letter-spacing:.12em;
+  border:1px solid rgba(240,91,48,.35); border-radius:999px; padding:8px 20px;
+  background:rgba(240,91,48,.06); color:var(--coral-deep);
+}
+.pill.teal-pill{ border-color:rgba(14,138,149,.4); background:rgba(14,138,149,.08); color:var(--teal-pop); }
+.meta-row{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:26px; }
+
+/* ---------- INTRO SCENE (Submarine Reveal) ---------- */
+.intro-wrap { position:relative; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.intro-wrap .intro-sub-anim{
+  position:absolute; width: 55vw; max-width: 900px; height: auto; top: 50%; left: -45vw; z-index: 10;
+  transform: translateY(-50%);
+  filter: drop-shadow(0 12px 26px rgba(10,53,64,.25));
+  animation: submarineReveal 8s cubic-bezier(0.22, 0.68, 0.32, 1) forwards;
+  pointer-events: none;
+}
+@keyframes submarineReveal{
+  0%{   left:-45vw;  opacity:0.1; transform:translateY(-50%) rotate(-2deg); }
+  5%{   opacity:1; }
+  25%{  transform:translateY(-53%) rotate(1deg); }
+  50%{  transform:translateY(-47%) rotate(-1.2deg); }
+  75%{  transform:translateY(-52%) rotate(1deg); }
+  90%{  left:80vw;  opacity:1; transform:translateY(-50%) rotate(0deg); }
+  100%{ left:110vw; opacity:0; visibility:hidden; transform:translateY(-50%); }
+}
+.intro-wrap .intro-content{
+  position:relative; z-index:1; display:flex; flex-direction:column; align-items:center;
+  clip-path:inset(0 100% 0 0);
+  animation:textWipeReveal 2.7s cubic-bezier(.16,.84,.44,1) forwards;
+  animation-delay:2.3s;
+}
+@keyframes textWipeReveal{ to{ clip-path:inset(0 0 0 0); } }
+.intro-wrap .brandline{ display:flex; align-items:center; gap:22px; justify-content:center; margin-bottom:18px; opacity:0; animation:badgeIn .9s ease both; animation-delay:2.35s; }
+.intro-wrap .brandline img{ height: 110px; width: auto; filter:drop-shadow(0 4px 10px rgba(10,53,64,.18)); }
+.intro-wrap .presents{ font-family:var(--font-mono); font-size:clamp(17px,1.5vw,22px); letter-spacing:.5em; text-transform:uppercase; color:var(--coral-deep); opacity:0; animation:badgeIn .8s ease both; animation-delay:2.55s; }
+.intro-wrap h1{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:2.75s; }
+.intro-wrap .sub-line{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:3.05s; }
+.intro-wrap .meta-row{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:3.4s; }
+
+/* ---------- WELCOME SCENE ---------- */
+.welcome-wrap{ max-width:1220px; }
+.welcome-wrap .script-heading{ opacity:0; animation:teamNameIn 1.1s ease both; animation-delay:.35s; }
+.welcome-wrap .formal-para{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:1s; }
+.welcome-wrap .sub-line{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:1.6s; margin-top:22px; }
+
+/* ---------- ABOUT SAVD SCENE ---------- */
+.about-wrap{ max-width:1480px; }
+.about-wrap h1.display{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:.35s; }
+.about-wrap .lead-line{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:.8s; }
+.chip-row{ display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:26px; max-width:1300px; }
+.chip-row .pill{ opacity:0; animation:tagIn .6s ease both; }
+
+/* ---------- UNIVERSITIES SCENE ---------- */
+.uni-wrap{ max-width:1620px; }
+.uni-wrap h1.display{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:.3s; font-size:clamp(32px,4.91vw,62px); }
+.uni-wrap .lead-line{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:.75s; }
+.uni-grid{
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-start;
+  gap:30px 40px; max-width:1560px; margin-top:34px;
+}
+.uni-card{
+  width:210px;
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  opacity:0; transform:translateY(20px);
+  animation:emerge .65s cubic-bezier(.2,.8,.2,1) forwards;
+  background:rgba(255,255,255,.7); border:1px solid var(--line); border-radius:18px;
+  padding:18px 14px 16px;
+  box-shadow:0 10px 22px rgba(10,53,64,.08);
+}
+.uni-card img{
+  height:78px; width:auto; max-width:140px; object-fit:contain;
+  display:block !important;
+  animation: float 5s ease-in-out infinite;
+}
+.uni-card span{ font-size:clamp(18px,1.57vw,22px); font-weight:600; line-height:1.25; text-align:center; color:var(--ink); letter-spacing:.01em; }
+
+.teams-mini-grid{
+  display:flex; flex-wrap:wrap; justify-content:center; align-items:flex-start;
+  gap:22px 26px; max-width:1680px; margin-top:30px;
+}
+.team-mini-card{
+  width:195px;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  opacity:0; transform:translateY(20px);
+  animation:emerge .65s cubic-bezier(.2,.8,.2,1) forwards;
+}
+.team-mini-card img{
+  height:72px; width:auto; max-width:130px; object-fit:contain;
+  display:block !important;
+  animation: float 5s ease-in-out infinite;
+}
+.team-mini-card span{ font-size:clamp(17px,1.43vw,21px); font-weight:600; line-height:1.25; text-align:center; color:var(--ink); letter-spacing:.01em; }
+
+/* ---------- FORMAT SCENE (numbered descent) ---------- */
+.format-wrap{ max-width:1050px; }
+.format-wrap h1.display{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:.3s; font-size:clamp(36px,5.46vw,71px); }
+.level-steps{ list-style:none; margin:32px 0 0; padding:0; display:flex; flex-direction:column; gap:0; position:relative; max-width:820px; }
+.level-steps li{
+  display:flex; align-items:center; gap:20px; text-align:left; position:relative;
+  padding:14px 18px; border-radius:14px;
+  opacity:0; transform:translateY(16px); animation:tagIn .65s ease both;
+}
+.level-steps li + li{ margin-top:10px; }
+.level-steps .num{
+  flex:none; width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:var(--coral-deep); color:#fff; font-family:var(--font-display); font-weight:700; font-size:22px;
+  box-shadow:0 6px 14px rgba(196,61,26,.3);
+}
+.level-steps .body{ flex:1; }
+.level-steps .ttl{ font-family:var(--font-mono); font-weight:700; letter-spacing:.06em; font-size:clamp(19px,1.91vw,24px); color:var(--ink); }
+.level-steps .desc{ font-size:clamp(18px,1.63vw,22px); color:var(--ink-soft); margin-top:2px; }
+.level-steps .marks{
+  flex:none; font-family:var(--font-mono); font-size:17px; letter-spacing:.06em; color:var(--teal-pop);
+  border:1px solid rgba(14,138,149,.35); border-radius:999px; padding:5px 12px; background:rgba(14,138,149,.06);
+  white-space:nowrap;
+}
+.level-steps li.bonus .num{ background:var(--teal-pop); box-shadow:0 6px 14px rgba(14,138,149,.3); }
+
+/* ---------- VENUE & SCORING SCENE ---------- */
+.venue-wrap{ max-width:900px; }
+.venue-wrap h1.display{ font-size:clamp(32px,4.91vw,62px); opacity:0; animation:teamNameIn 1s ease both; animation-delay:.3s; }
+.venue-wrap .lead-line{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:.75s; }
+.score-bar-wrap{ width:100%; max-width:760px; margin:30px auto 0; opacity:0; animation:teamNameIn .9s ease both; animation-delay:1.1s; }
+.score-bar{ display:flex; width:100%; height:56px; border-radius:14px; overflow:hidden; box-shadow:0 10px 26px rgba(10,53,64,.12); }
+.score-seg{
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  font-family:var(--font-mono); font-weight:700; font-size:clamp(15px,1.37vw,19px); letter-spacing:.03em;
+  opacity:0; transform:scaleX(0); transform-origin:left;
+  animation:growIn .7s cubic-bezier(.2,.8,.2,1) forwards;
+}
+.score-seg span{ padding:0 6px; white-space:nowrap; }
+@keyframes growIn{ from{ opacity:0; transform:scaleX(0); } to{ opacity:1; transform:scaleX(1); } }
+.score-legend{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:16px; }
+.score-legend .item{ display:flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:17px; color:var(--ink-soft); opacity:0; animation:tagIn .5s ease both; }
+.score-legend .swatch{ width:11px; height:11px; border-radius:3px; flex:none; }
+.score-total-line{ margin-top:18px; font-family:var(--font-display); font-weight:700; font-size:clamp(24px,2.73vw,36px); color:var(--coral-deep); }
+.score-total-line small{ font-family:var(--font-mono); font-weight:600; font-size:18px; color:var(--ink-soft); letter-spacing:.05em; }
+
+/* ---------- CLOSING SCENE ---------- */
+.closing-wrap{ max-width:1220px; }
+.closing-wrap .sub-line{ opacity:0; animation:teamNameIn 1s ease both; animation-delay:.5s; }
+.cta-btn{
+  display:inline-flex; align-items:center; gap:10px; margin-top:30px;
+  font-family:var(--font-mono); font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  font-size:clamp(18px,1.63vw,22px); color:#fff; text-decoration:none;
+  background:linear-gradient(90deg,var(--coral),var(--coral-deep)); padding:16px 34px; border-radius:999px;
+  box-shadow:0 12px 26px rgba(196,61,26,.32);
+  opacity:0; animation:teamNameIn .9s ease both; animation-delay:1s;
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.cta-btn:hover{ transform:translateY(-3px); box-shadow:0 16px 32px rgba(196,61,26,.4); }
+.closing-wrap .reg-line{
+  margin-top:22px; font-family:var(--font-mono); font-size:clamp(15px,1.37vw,19px); color:var(--ink-soft);
+  opacity:0; animation:teamNameIn .9s ease both; animation-delay:1.35s;
+}
+.closing-wrap .credit-row{ display:flex; gap:30px; align-items:center; justify-content:center; margin-top:26px; opacity:0; animation:teamNameIn .9s ease both; animation-delay:1.6s; }
+.closing-wrap .credit-row img{ height: 68px; width: auto; object-fit:contain; opacity:.85; }
+
+/* ---------- shared keyframes ---------- */
+@keyframes badgeIn{ from{ opacity:0; transform:translateY(-34px) scale(.85); } to{ opacity:1; transform:none; } }
+@keyframes teamNameIn{ from{ opacity:0; transform:translateY(22px); } to{ opacity:1; transform:none; } }
+@keyframes tagIn{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+@keyframes emerge{ 0%{ opacity:0; transform:scale(.9) translateY(16px); } 65%{ opacity:1; } 100%{ opacity:1; transform:scale(1) translateY(0); } }
+@keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
+
+/* ---------- persistent top-left MES logo ---------- */
+#mesTopLeft{ position:fixed; top:22px; left:28px; z-index:50; pointer-events:none; }
+#mesTopLeft img{ height:52px; width:auto; object-fit:contain; filter:drop-shadow(0 3px 8px rgba(10,53,64,.15)); }
+
+/* ---------- background audio mute/unmute toggle ---------- */
+#audioToggle{
+  position:fixed; top:22px; right:28px; z-index:50; pointer-events:auto;
+  display:flex; align-items:center; gap:9px;
+  font-family:var(--font-mono); font-size:15px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--ink); background:rgba(255,255,255,.72); backdrop-filter:blur(8px);
+  border:1px solid rgba(198,230,236,.9); border-radius:999px; padding:10px 18px 10px 14px;
+  cursor:pointer; box-shadow:0 8px 20px rgba(10,53,64,.12);
+  transition:background .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+#audioToggle:hover{ background:rgba(255,255,255,.92); transform:translateY(-2px); box-shadow:0 12px 26px rgba(10,53,64,.18); }
+#audioToggle:active{ transform:translateY(0); }
+#audioToggle[aria-pressed="true"]{ color:var(--teal-pop); border-color:rgba(14,138,149,.4); background:rgba(14,138,149,.08); }
+#audioToggle svg{ flex:none; }
+
+/* ---------- persistent chrome: watermark, progress, teams link ---------- */
+#chrome{ position:fixed; inset:0; z-index:6; pointer-events:none; }
+#brandmark{ position:absolute; left:28px; bottom:22px; display:flex; align-items:center; gap:16px; font-family:var(--font-mono); font-size:17px; letter-spacing:.15em; color:var(--ink-soft); }
+#brandmark img{ height:36px; width:auto; object-fit:contain; opacity:.9; }
+#brandmark span{ padding-left:16px; border-left:1px solid var(--line); }
+#progress{ position:absolute; left:0; right:0; bottom:0; height:4px; background:rgba(10,53,64,.08); }
+#progressBar{ height:100%; width:100%; transform:scaleX(0); transform-origin:left; background:linear-gradient(90deg,var(--coral),var(--coral-deep)); }
+#eventTag{ position:absolute; right:28px; bottom:44px; font-family:var(--font-mono); font-size:17px; letter-spacing:.2em; color:var(--ink-soft); }
+#teamsLink{
+  position:absolute; right:28px; bottom:66px; pointer-events:auto;
+  font-family:var(--font-mono); font-size:15px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--coral-deep); text-decoration:none; border:1px solid rgba(196,61,26,.35);
+  border-radius:999px; padding:7px 16px; background:rgba(255,255,255,.6); backdrop-filter:blur(4px);
+  transition:background .2s ease;
+}
+#teamsLink:hover{ background:rgba(240,91,48,.1); }
+
+#ambient{ position:fixed; inset:0; z-index:5; pointer-events:none; overflow:hidden; }
+.bubble{ position:absolute; bottom:-5%; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), rgba(14,138,149,.08) 60%);
+  border:1px solid rgba(14,138,149,.18);
+}
+@keyframes rise{
+  0%{ transform:translateY(0) translateX(0); opacity:0; }
+  8%{ opacity:.75; }
+  92%{ opacity:.35; }
+  100%{ transform:translateY(-115vh) translateX(5vw); opacity:0; }
+}
+
+#startHint, #helpOverlay{
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:20;
+  background:rgba(255,255,255,.92); border:1px solid var(--line); border-radius:14px;
+  padding:26px 34px; font-family:var(--font-mono); font-size:19px; line-height:2; color:var(--ink);
+  text-align:left; letter-spacing:.03em; box-shadow:0 20px 46px rgba(10,53,64,.14);
+}
+#startHint{ top:auto; bottom:26px; left:auto; right:28px; transform:none; padding:12px 18px; font-size:17px; opacity:.9; transition:opacity .6s ease; }
+#helpOverlay{ display:none; }
+#helpOverlay b{ color:var(--coral-deep); }
+.hidden{ display:none !important; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
+</style>
+</head>
+<body data-bg="video">
+
+<!-- 1. SUBMARINE / UNDERWATER VIDEO BACKDROP -->
+<div id="bg-video-wrapper">
+    <video id="bgVideo" autoplay loop muted playsinline poster="submarine.png">
+        <source src="submarine.mp4" type="video/mp4">
+        <source src="https://cdn.coverr.co/videos/underwater-ocean-scene-coverr/underwater-ocean-scene-hd-1080p.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</div>
+
+<!-- 2. UOL CAMPUS / POOL PHOTO BACKDROP -->
+<div id="bg-slideshow"></div>
+
+<!-- 3. AMBIENT LIGHT SHIMMER -->
+<div id="light-rays"></div>
+
+<!-- 4. READABILITY / LIGHTENING WASH -->
+<div id="bg-overlay"></div>
+
+<!-- PERSISTENT MES LOGO -->
+<div id="mesTopLeft"><img src="MES.png" alt="MES"></div>
+
+<!-- BACKGROUND AUDIO MUTE/UNMUTE TOGGLE -->
+<button id="audioToggle" type="button" aria-label="Unmute background audio" aria-pressed="false">
+  <svg id="iconMuted" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 8 8 8 12 4 12 20 8 16 4 16 4 8"></polygon><line x1="17" y1="9" x2="22" y2="14"></line><line x1="22" y1="9" x2="17" y2="14"></line></svg>
+  <svg id="iconUnmuted" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="4 8 8 8 12 4 12 20 8 16 4 16 4 8"></polygon><path d="M16 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 6a8.5 8.5 0 0 1 0 12"></path></svg>
+  <span id="audioToggleLabel">Sound Off</span>
+</button>
+
+<!-- MAIN STAGE -->
+<div id="stage"></div>
+
+<!-- UI CHROME -->
+<div id="chrome">
+  <div id="brandmark"><img src="mes_logo.png" alt="MES"><img src="uol_logo.png" alt="UOL"><img src="clubs_logo.png" alt="Societies"> <span>SAVD 2026</span></div>
+  <div id="eventTag">OPENING CEREMONY · 11 AUG 2026</div>
+  <a id="teamsLink" href="teams.html">Meet the Teams →</a>
+  <div id="progress"><div id="progressBar"></div></div>
+</div>
+
+<div id="startHint">F fullscreen &nbsp;·&nbsp; space pause &nbsp;·&nbsp; ← → skip &nbsp;·&nbsp; H help</div>
+
+<div id="helpOverlay">
+  <div><b>SAVD 2026 — Operator Controls</b></div>
+  <div>Space &nbsp;— pause / resume the show</div>
+  <div>→ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;— skip to next scene</div>
+  <div>← &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;— go back one scene</div>
+  <div>F &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;— toggle fullscreen</div>
+  <div>H &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;— toggle this help panel</div>
+  <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">Team roster lives on a separate page — use the "Meet the Teams" link, bottom right.</div>
+</div>
+
+<script>
+const CONFIG = {
+  eventTitle: "SAVD 2026",
+  eventSubtitle: "1st Submersible Autonomous Vehicle Design Competition",
+  host: "University of Lahore · Defence Road Campus",
+  eventDate: "11 August 2026",
+  durations: {
+    intro: 12000,
+    welcome: 11500,
+    aboutSavd: 12000,
+    format: 14000,
+    universities: 16000,
+    venueScoring: 12500,
+    teamsGrid: 17000,
+    closing: 9500
+  }
+};
+
+const LOGOS = { mes: "mes_logo.png", clubs: "clubs_logo.png", uol: "uol_logo.png" };
+
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+
+/* ---------- SCENE 1 : INTRO ---------- */
+function buildIntro(){
+  const wrap = el('div','scene-inner intro-wrap');
+  wrap.innerHTML = `
+    <img class="intro-sub-anim" src="submarine.png" alt="Submarine" />
+    <div class="intro-content">
+      <div class="brandline"><img src="${LOGOS.mes}" alt="MES"></div>
+      <div class="presents">Mechanical Engineering Society Presents</div>
+      <h1 class="display">${CONFIG.eventTitle}</h1>
+      <div class="sub-line">${CONFIG.eventSubtitle}</div>
+      <div class="meta-row">
+        <div class="pill">${CONFIG.host}</div>
+        <div class="pill teal-pill">${CONFIG.eventDate}</div>
+      </div>
+    </div>`;
+  return wrap;
+}
+
+/* ---------- SCENE 2 : WELCOME ---------- */
+function buildWelcome(){
+  const wrap = el('div','scene-inner welcome-wrap');
+  wrap.innerHTML = `
+    <div class="eyebrow">A Warm Welcome</div>
+    <div class="script-heading">Dive In</div>
+    <p class="formal-para">To our respected guests, faculty, industry partners, and every young engineer standing poolside today — welcome to SAVD 2026. It is a privilege to have you here as we celebrate months of late nights, careful soldering, and stubborn problem-solving, all leading up to this one afternoon.</p>
+    <p class="lead-line">Whatever happens in the water today, every team here has already built something remarkable. Thank you for being part of it — let the countdown begin.</p>
+    <div class="sub-line">Where circuits meet current, and imagination dives deep.</div>`;
+  return wrap;
+}
+
+/* ---------- SCENE 3 : ABOUT SAVD ---------- */
+function buildAboutSavd(){
+  const wrap = el('div','scene-inner about-wrap');
+  const chips = ["≤ 400 mm Length","Rated to 2 m Depth","Team of up to 5","Hybrid Teams Encouraged","Any DIY Technique","Agility & Robustness Judged"];
+  wrap.innerHTML = `
+    <div class="eyebrow">About The Challenge</div>
+    <h1 class="display">Design. Build. <span class="coral">Dive.</span></h1>
+    <p class="lead-line">Teams engineer a fully autonomous underwater vehicle from scratch — compact, agile, and robust enough to handle everything the pool throws at it.</p>
+    <div class="chip-row">${chips.map((c,i)=>`<div class="pill" style="animation-delay:${1.1+i*0.15}s">${c}</div>`).join("")}</div>
+    <div class="sub-line" style="margin-top:28px; opacity:0; animation:teamNameIn .9s ease both; animation-delay:2.1s;">Show the world your design &amp; programming skills.</div>`;
+  return wrap;
+}
+
+/* ---------- SCENE 4 : FORMAT ---------- */
+function buildFormat(){
+  const wrap = el('div','scene-inner format-wrap');
+  const steps = [
+    ["1","Qualifying Test","Reverse · Forward · Roll · Pitch · Yaw · Depth Change","18 marks",""],
+    ["2","Level 1 — Gates & Path","Operator-controlled navigation through 3 gates, then the marked pool-floor path","82 marks",""],
+    ["3","Level 2 — Autonomous","Fully autonomous rerun of gates & path using onboard sensors","+55 bonus","bonus"]
+  ];
+  wrap.innerHTML = `
+    <div class="eyebrow">Competition Format</div>
+    <h1 class="display">Three Stages. <span class="teal">One Pool.</span></h1>
+    <ul class="level-steps">
+      ${steps.map((s,i)=>`<li class="${s[4]}" style="animation-delay:${0.4+i*0.3}s"><div class="num">${s[0]}</div><div class="body"><div class="ttl">${s[1]}</div><div class="desc">${s[2]}</div></div><div class="marks">${s[3]}</div></li>`).join("")}
+    </ul>`;
+  return wrap;
+}
+
+/* ---------- SCENE 5 : UNIVERSITIES ---------- */
+function buildUniversities(){
+  const wrap = el('div','scene-inner uni-wrap');
+  const unis = [
+    ["uol.png","University of Lahore"],
+    ["uet_taxila.png","UET Taxila"],
+    ["niit.png","NIIT"],
+    ["nust.png","NUST"],
+    ["ist.png","Institute of Space Technology (IST)"],
+    ["pucit.png","PUCIT"],
+    ["ucp.png","University of Central Punjab"]
+  ];
+  wrap.innerHTML = `
+    <div class="eyebrow">From Across Pakistan</div>
+    <h1 class="display">Universities <span class="teal">&amp; Teams</span> Participating</h1>
+    <div class="uni-grid">
+      ${unis.map((u,i)=>`<div class="uni-card" style="animation-delay:${0.6+i*0.14}s"><img src="${u[0]}" alt="${u[1]}"><span>${u[1]}</span></div>`).join("")}
+    </div>`;
+  return wrap;
+}
+
+/* ---------- SCENE 6 : VENUE & SCORING ---------- */
+function buildVenueScoring(){
+  const wrap = el('div','scene-inner venue-wrap');
+  const segs = [
+    ["Qualifying", 18, "#0e8a95"],
+    ["Gates",      30, "#12a5b2"],
+    ["Path",       52, "#f05b30"],
+    ["Bonus",      55, "#c43d1a"]
+  ];
+  const total = segs.reduce((s,x)=>s+x[1],0);
+  wrap.innerHTML = `
+    <div class="eyebrow">The Arena</div>
+    <h1 class="display">University of Lahore <span class="teal">Swimming Pool</span></h1>
+    <p class="lead-line">Defence Road Campus — regulation lanes, varying depth, gates and path set beneath the surface.</p>
+    <div class="score-bar-wrap">
+      <div class="score-bar">
+        ${segs.map((s,i)=>`<div class="score-seg" style="flex:${s[1]} 0 0; background:${s[2]}; animation-delay:${1.3+i*0.18}s;"><span>${s[1]}</span></div>`).join("")}
+      </div>
+      <div class="score-legend">
+        ${segs.map((s,i)=>`<div class="item" style="animation-delay:${2.1+i*0.15}s;"><span class="swatch" style="background:${s[2]}"></span>${s[0]} · ${s[1]}${i===3?' (bonus)':''}</div>`).join("")}
+      </div>
+      <div class="score-total-line" style="opacity:0; animation:teamNameIn .8s ease both; animation-delay:2.7s;"><small>Total in play —</small> ${total} points</div>
+    </div>`;
+  return wrap;
+}
+
+/* ---------- SCENE 7 : CLOSING ---------- */
+function buildClosing(){
+  const wrap = el('div','scene-inner closing-wrap');
+  wrap.innerHTML = `
+    <div class="eyebrow">Good Luck</div>
+    <h1 class="display">Dive In, <span class="accent-word">Champions</span></h1>
+    <div class="sub-line">7 institutions. 20 teams. One pool.</div>
+    <a class="cta-btn" href="teams.html">Meet the Teams →</a>
+    <div class="reg-line">Dr Salman Abubakar Bugvi &nbsp;·&nbsp; salman.bugvi@me.uol.edu.pk &nbsp;·&nbsp; +92 321 2554978</div>
+    <div class="credit-row"><img src="${LOGOS.mes}" alt="MES"><img src="${LOGOS.uol}" alt="UOL"><img src="${LOGOS.clubs}" alt="Clubs"></div>`;
+  return wrap;
+}
+
+/* ---------- SCENE : PARTICIPATING TEAMS ---------- */
+function buildTeamsGrid(){
+  const wrap = el('div','scene-inner uni-wrap');
+  const teams = [
+    ["vortex.png","Vortex"],
+    ["scuba_dooby.png","Scuba Dooby"],
+    ["aaly-aquax.png","Aaly-AquaX"],
+    ["roboflux_2_0.png","Roboflux 2.0"],
+    ["poseidon.png","Team Poseidon"],
+    ["the_sebastians.png","The Sebastians"],
+    ["ak.png","Team AK"],
+    ["salam.png","Team Salam"],
+    ["aeoron.png","Aeoron"],
+    ["aeromarines.png","Team AeroMarines"],
+    ["leviathans.png","Leviathans"],
+    ["nauticode.png","NautiCode"],
+    ["bolt_heads.png","Bolt Heads"],
+    ["silent_predators.png","Silent predators"],
+    ["aqua_tech.png","Aqua Tech"],
+    ["mistry_phantoms.png","Mistry Phantoms"],
+    ["qalandars.png","Team Qalandars"],
+    ["robosapians.png","Robosapians"],
+    ["obsidian.png","Obsidian"],
+    ["autonomous_engineers.png","Autonomous engineers"]
+  ];
+  wrap.innerHTML = `
+    <div class="eyebrow">20 Teams. One Pool.</div>
+    <h1 class="display">Participating <span class="teal">Teams</span></h1>
+    <div class="teams-mini-grid">
+      ${teams.map((t,i)=>`<div class="team-mini-card" style="animation-delay:${0.6+i*0.05}s"><img src="${t[0]}" alt="${t[1]}" onerror="this.onerror=null;this.src='default.png';"><span>${t[1]}</span></div>`).join("")}
+    </div>`;
+  return wrap;
+}
+
+const SCENES = [
+  { type:'intro',        bg:'video', build: buildIntro,        duration: CONFIG.durations.intro },
+  { type:'welcome',      bg:'image', build: buildWelcome,      duration: CONFIG.durations.welcome },
+  { type:'aboutSavd',    bg:'video', build: buildAboutSavd,    duration: CONFIG.durations.aboutSavd },
+  { type:'format',       bg:'image', build: buildFormat,       duration: CONFIG.durations.format },
+  { type:'universities', bg:'video', build: buildUniversities, duration: CONFIG.durations.universities },
+  { type:'venueScoring', bg:'image', build: buildVenueScoring, duration: CONFIG.durations.venueScoring },
+  { type:'teamsGrid',    bg:'video', build: buildTeamsGrid,    duration: CONFIG.durations.teamsGrid },
+  { type:'closing',      bg:'image', build: buildClosing,      duration: CONFIG.durations.closing }
+];
+
+let idx = 0, paused = false, progAnim = null;
+const stage = document.getElementById('stage');
+const progressBar = document.getElementById('progressBar');
+
+function mount(i){
+  const scene = SCENES[((i % SCENES.length) + SCENES.length) % SCENES.length];
+  document.body.setAttribute('data-bg', scene.bg || 'image');
+  const holder = el('div','scene'); holder.appendChild(scene.build());
+  const prev = stage.querySelector('.scene');
+  if(prev){ prev.classList.remove('active'); prev.classList.add('leaving'); setTimeout(()=>{ if(prev.parentNode) prev.parentNode.removeChild(prev); }, 850); }
+  stage.appendChild(holder);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>holder.classList.add('active')));
+  if(progAnim){ try{ progAnim.cancel(); }catch(e){} }
+  progAnim = progressBar.animate([{ transform:'scaleX(0)' }, { transform:'scaleX(1)' }], { duration: scene.duration, easing:'linear', fill:'forwards' });
+  progAnim.onfinish = () => { if(!paused) advance(1); };
+  if(paused && progAnim.pause) progAnim.pause();
+}
+function advance(dir){ if(progAnim){ try{ progAnim.cancel(); }catch(e){} } idx += dir; mount(idx); }
+function togglePause(){ paused = !paused; if(!progAnim) return; paused ? progAnim.pause() : progAnim.play(); }
+function toggleHelp(){ document.getElementById('helpOverlay').classList.toggle('hidden'); }
+function toggleFullscreen(){ !document.fullscreenElement ? document.documentElement.requestFullscreen?.() : document.exitFullscreen?.(); }
+
+/* ---- Fullscreen persistence: carry the fullscreen state across
+   navigation to/from the team roster page so the show never drops out of it. */
+const FS_KEY = 'savdFullscreenActive';
+function markFullscreenForNav(){
+  try{
+    if(document.fullscreenElement) sessionStorage.setItem(FS_KEY,'1');
+    else sessionStorage.removeItem(FS_KEY);
+  }catch(e){}
+}
+(function resumeFullscreenIfNeeded(){
+  let wasFs = false;
+  try{ wasFs = sessionStorage.getItem(FS_KEY) === '1'; }catch(e){}
+  if(!wasFs) return;
+  const tryFs = () => { document.documentElement.requestFullscreen?.().catch(()=>{}); };
+  tryFs();
+  document.addEventListener('click', function once(){ tryFs(); document.removeEventListener('click', once); }, { once:true });
+})();
+document.querySelectorAll('a[href="teams.html"]').forEach(a => a.addEventListener('click', markFullscreenForNav));
+
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'ArrowRight') advance(1); else if(e.key === 'ArrowLeft') advance(-1);
+  else if(e.code === 'Space'){ e.preventDefault(); togglePause(); }
+  else if(e.key === 'f' || e.key === 'F') toggleFullscreen(); else if(e.key === 'h' || e.key === 'H') toggleHelp();
+});
+
+(function initSlideshow(){
+  const container = document.getElementById('bg-slideshow');
+  let currentIdx = 0;
+  for(let i=1; i<=18; i++){
+    const div = document.createElement('div');
+    div.className = 'bg-slide';
+    div.style.backgroundImage = `url('uol_${i}.jpg')`;
+    if(i === 1) div.classList.add('active');
+    container.appendChild(div);
+  }
+  const slides = container.querySelectorAll('.bg-slide');
+  setInterval(() => {
+    slides[currentIdx].classList.remove('active');
+    currentIdx = (currentIdx + 1) % slides.length;
+    slides[currentIdx].classList.add('active');
+  }, 5000);
+})();
+
+(function seedBubbles(){
+  const ambient = document.createElement('div'); ambient.id = 'ambient'; ambient.className = 'ambient'; document.body.appendChild(ambient);
+  for(let i=0; i<20; i++){
+    const b = el('div','bubble');
+    const size = 4 + Math.random()*10;
+    b.style.cssText = `position:absolute;bottom:-5%;animation:rise ${10+Math.random()*14}s linear infinite;animation-delay:${Math.random()*14}s;width:${size}px;height:${size}px;left:${Math.random()*100}vw;`;
+    ambient.appendChild(b);
+  }
+})();
+
+setTimeout(()=>{ const h=document.getElementById('startHint'); if(h) h.style.opacity='0'; }, 9000);
+mount(0);
+
+/* ---------- BACKGROUND AUDIO (submarine.mp4 soundtrack) ---------- */
+(function initBgAudio(){
+  const video = document.getElementById('bgVideo');
+  const btn = document.getElementById('audioToggle');
+  const iconMuted = document.getElementById('iconMuted');
+  const iconUnmuted = document.getElementById('iconUnmuted');
+  const label = document.getElementById('audioToggleLabel');
+  if(!video || !btn) return;
+
+  function reflectState(){
+    const on = !video.muted;
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', on ? 'Mute background audio' : 'Unmute background audio');
+    label.textContent = on ? 'Sound On' : 'Sound Off';
+    iconMuted.style.display = on ? 'none' : '';
+    iconUnmuted.style.display = on ? '' : 'none';
+  }
+
+  // Browsers require autoplaying video to start muted; try to unmute right
+  // away in case the browser allows it, otherwise stay muted until the
+  // visitor opts in via the toggle button (a genuine user gesture).
+  video.muted = true;
+  video.play().catch(()=>{});
+  reflectState();
+
+  btn.addEventListener('click', () => {
+    video.muted = !video.muted;
+    if(!video.muted){ video.play().catch(()=>{ video.muted = true; reflectState(); }); }
+    reflectState();
+  });
+})();
+</script>
+</body>
+</html>
